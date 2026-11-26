@@ -5,7 +5,11 @@ The program allows for PDF, DOCX and .md files
 
 """
 
-from langchain_community.document_loaders import(PyPDFLoader, TextLoader, Docx2txtLoader)
+from langchain_core.documents import Document
+from pypdf import PdfReader
+from pathlib import Path
+import docx2txt
+
 class Loaders:
     def __init__(self):
      """Initialize GEMINI embedding model"""
@@ -13,7 +17,7 @@ class Loaders:
      self.content = [] #store document's content   
  
 
-    def load_documents(self,document:str)->str:
+    def load_documents(self,document:str)->list[Document]:
        """
        Function to read the document and parse its content
        Validates document type and acts properly
@@ -23,98 +27,87 @@ class Loaders:
             document: str (filepath)
 
        Returns: 
-               document's content: str
+               document content: list[document]
+
+       Raises:
+                     ValueError if the provided file path is wrong or not supported
        """
 
-    #return an error message if file path is empty
-       Loaders.__handle_empty_file_argument(document)
+       #return an error message if file path is empty
+       self.__validate_file_path(document)
+      
+       #get the suffix of files
+       ext = Path(document).suffix.lower()
 
-       if document.endswith('.pdf'):
-          """
-          if document ends with pdf use the pdf reader
-          """
-          doc = Loaders.__handle_pdf_file(document)
-          
+       if ext == ".pdf": # if file is pdf use pdf handler
+         docs = self.__handle_pdf_file(document)
+                          
+       elif ext == ".docx": # if file is word document use word handler
+         docs = self.__handle_docx_file(document)
 
-       elif document.endswith('.txt'):
-          """handle txt"""
-          doc = Loaders.__handle_txt_file(document)
-          
-       elif document.endswith('.docx'):
-           """handle docx files"""
-           doc = Loaders.__handle_docx_file(document)
-           
-
-       elif document.endswith('.md'):
-          """Handle .md files"""
-          doc = Loaders.__handle_md_file(document)
-          
-
+       elif ext in {".txt", ".md"}: # if file is txt or md use text file handler
+         docs = self.__handle_text_file(document)
        else:
-          return 'Unsupported document format'
+            raise ValueError(f"Unsupported document format: {ext}")
+
 
        
        #convert the document to a full string
-       full_text = "\n".join(doc.page_content for doc in doc)
+       full_text = "\n".join(doc.page_content for doc in docs)
        self.content.append(full_text)
+       print('File loaded!')
        return full_text
 
 
 
     @staticmethod
-    def __handle_md_file(file:str)-> list:
-     """Extract content from .md files"""
-     # 2. Load a .md file as plain text
-     md_loader = TextLoader(file, encoding="utf-8")
-     md_docs = md_loader.load()
-     return md_docs
+    def __handle_text_file(file: str) -> list[Document]:
+      """Extract content from .txt and .md files."""
+      text = Path(file).read_text(encoding="utf-8")
+      return [Document(page_content=text, metadata={"source": file})]
 
 
     @staticmethod
-    def __handle_docx_file(file:str)-> list:
+    def __handle_docx_file(file:str) -> list[Document]:
         """Extract content from .docx file"""
         #return an error message if file path is empty
         Loaders.__handle_empty_file_argument(file)
         
-        docx_loader = Docx2txtLoader(file)
-        docx_docs = docx_loader.load()
-        return docx_docs 
+        text = docx2txt.process(file)
+        return [Document(page_content=text, metadata={"source": file})]
         
-    @staticmethod
-    def __handle_txt_file(file:str)-> list:
-       """Extract content from txt file"""
-
-       #return an error message if file path is empty
-       Loaders.__handle_empty_file_argument(file)
-
-       
-       txt_loader = TextLoader(file, encoding="utf-8")
-       txt_docs = txt_loader.load()
-       return txt_docs
-
-          
+         
 
     @staticmethod
-    def __handle_pdf_file(file:str)-> list:
-       """
-        Private method to handle PDF files
-       """
-
-       #return an error message if file path is empty
-       Loaders.__handle_empty_file_argument(file)
-
-       loader = PyPDFLoader(file)
-       pages = loader.load()
-
-       return pages 
+    def __handle_pdf_file(file: str) -> list[Document]:
+        """Extract content from PDF files page by page."""
+        reader = PdfReader(file)
+        return [
+            Document(
+                page_content=page.extract_text() or "",
+                metadata={"source": file, "page": i},
+            )
+            for i, page in enumerate(reader.pages)
+        ]
 
 
     @staticmethod
-    def __handle_empty_file_argument(file:str)->None:
-        """return false if file is empty"""
+    def __validate_file_path(file: str) -> None:
+        """Validates that the file path is not empty and the file exists.
+        Raises:
+               ValueError if file path is wrong,
+               FileNotFoundError if file does wasn't available
+        """
         if not file or not file.strip():
-            return 'Please insert a correct file path'
+            raise ValueError("Please insert a correct file path.")
+        if not Path(file).is_file():
+            raise FileNotFoundError(f"File not found: {file}")
 
+
+
+if __name__ == '__main__':
+   loaders = Loaders()
+   loaders.load_documents("C:/Users/Overkill/Downloads/Georgios_Mavropoulos.pdf")
        
        
 
