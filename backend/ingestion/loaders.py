@@ -104,6 +104,11 @@ class Loaders:
             raise FileNotFoundError(f"File not found: {file}")
 
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 2872555 (removedtest call)
        
        
 
