@@ -70,9 +70,6 @@ class Loaders:
     @staticmethod
     def __handle_docx_file(file:str) -> list[Document]:
         """Extract content from .docx file"""
-        #return an error message if file path is empty
-        Loaders.__handle_empty_file_argument(file)
-        
         text = docx2txt.process(file)
         return [Document(page_content=text, metadata={"source": file})]
         
@@ -104,11 +101,7 @@ class Loaders:
             raise FileNotFoundError(f"File not found: {file}")
 
 
-<<<<<<< HEAD
-=======
 
-
->>>>>>> 2872555 (removedtest call)
        
        
 
