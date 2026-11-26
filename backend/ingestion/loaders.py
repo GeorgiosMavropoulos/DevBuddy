@@ -104,10 +104,6 @@ class Loaders:
             raise FileNotFoundError(f"File not found: {file}")
 
 
-
-if __name__ == '__main__':
-   loaders = Loaders()
-   loaders.load_documents("C:/Users/Overkill/Downloads/Georgios_Mavropoulos.pdf")
        
        
 
