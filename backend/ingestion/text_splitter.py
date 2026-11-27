@@ -10,9 +10,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 class TextSplitter:
     def __init__(self):
-        self.text = text
-
-    
+     pass 
     
     
     
