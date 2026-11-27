@@ -112,6 +112,8 @@ devbuddy/
 ├── frontend/
 │
 ├── tests/
+    ├── test_loaders.py
+    ├── test_splitter.py
 │
 ├── requirements.txt
 └── README.md
@@ -138,4 +140,3 @@ It's an exploration of how different LLM application components can work togethe
 
 ---
 
-*Built with curiosity, Python, and a little too much AI.*
